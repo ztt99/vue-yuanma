@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app" style="color:red">
+        <p>
+            {{name}}
+
+        </p>
+    </div>
+    <script src="/dist/umd/vue.js"></script>
+    <script>
+        let vm = new Vue({
+            el : '#app',
+            data(){
+                return {
+                    name:'zs',
+                    age:12,
+                    arr :[1,2,3]
+                }
+            },
+            beforeCreate(){
+                // console.log('user');
+            },
+            updated(){
+                console.log('update');
+            },
+            created(){
+                setTimeout(()=>{
+                this.age = 3
+                    this.name = 0
+                    // this.name = 1
+                    // this.name = 2
+                    // this.name = 3
+                    // this.name = 4
+                    // // this.name = 5
+                    // this.$nextTick(()=>{
+                    //     console.log(12);
+                    // })
+                    // this.$nextTick(()=>{
+                    //     console.log(3);
+                    // })
+                     /*
+                    1. 触发set
+                    2. 触发notify
+                    3. render函数 触发 get name 触发 get arr
+                    */
+                    // this.arr1.push(1)
+                    /*
+                    1. 触发push
+                    2. 触发notify
+                    3. render函数 触发 get name 触发 get arr
+                    */
+                    // this._update(this._render())
+                },1000)
+            }
+        })
+    </script>
+</body>
+</html>
