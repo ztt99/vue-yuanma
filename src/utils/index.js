@@ -22,6 +22,17 @@ const API_HOOkS = [
 ]
 let starts = {}
 
+starts.components = function(parent,child){
+    const res = Object.create(parent)  //res.__proto__ = Object.create(parent)
+    for(let key in child){
+        res[key] = child[key]
+    }
+    return key
+}
+
+starts.data = function(parent,child){
+    return child
+}
 API_HOOkS.forEach(hook=>{
     starts[hook] = mergeHook
 })

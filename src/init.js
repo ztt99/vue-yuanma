@@ -5,7 +5,7 @@ import { mergeOptions } from './utils/index'
 import { nextTick } from './utils/next-tick'
 export function initMixin(Vue) {
     Vue.prototype._init = function (options) {
-        const vm = this
+        const vm = this 
         vm.$options = mergeOptions(vm.constructor.options, options)
         callHook(vm, 'beforeCreate')
         initState(vm)
