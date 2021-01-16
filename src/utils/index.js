@@ -23,6 +23,7 @@ const API_HOOkS = [
 let starts = {}
 
 starts.components = function(parent,child){
+    console.log(parent);
     const res = Object.create(parent)  //res.__proto__ = Object.create(parent)
     for(let key in child){
         res[key] = child[key]
@@ -50,9 +51,11 @@ function mergeHook(parent,child){
 export  function mergeOptions(parent,child){
     let options = {}
     for(let key in parent){
+        console.log(key);
         mergefile(key)
     } 
     for(let key in child){
+        console.log(key);
         if(!parent.hasOwnProperty(key)){
             mergefile(key)
         }
