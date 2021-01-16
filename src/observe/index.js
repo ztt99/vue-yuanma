@@ -6,7 +6,7 @@ import Dep from './dep.js'
 class Observe{
     constructor(data){
         this.dep = new Dep
-
+console.log(data);
         Object.defineProperty(data,'__ob__',{
             enumerable:false,
             configurable:false,
@@ -24,6 +24,7 @@ class Observe{
         for(let i = 0 , len = keys.length; i< len; i++){
             let key = keys[i]
             let value = data[key]
+            console.log(data,key,value);
             defineReactive(data,key,value)
         }
     }

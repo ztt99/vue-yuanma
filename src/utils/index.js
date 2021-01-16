@@ -30,9 +30,9 @@ starts.components = function(parent,child){
     return res
 }
 
-starts.data = function(parent,child){
-    return child
-}
+// starts.data = function(parent,child){
+//     return child
+// }
 API_HOOkS.forEach(hook=>{
     starts[hook] = mergeHook
 })

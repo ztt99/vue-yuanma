@@ -10,7 +10,6 @@ export function initMixin(Vue) {
         callHook(vm, 'beforeCreate')
         initState(vm)
         callHook(vm, 'created')
-
         let el = vm.$options.el
         if (el) {
             vm.$mount(el)

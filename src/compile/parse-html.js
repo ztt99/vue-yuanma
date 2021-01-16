@@ -7,8 +7,8 @@ const startTagOpen = new RegExp(`^<${qnameCapture}`)
 const startTagClose = /^\s*(\/?)>/
 const endTag = new RegExp(`^<\\/${qnameCapture}[^>]*>`)
 
-let root = null
 let currentParen
+let root
 let stack = []
 const ELEMENT_TYPE = 1
 const TEXT_TYPE = 3
@@ -22,6 +22,7 @@ function createAstElement(tagName,attrs){
         attrs
     }
 }
+
 function start(tagName,attrs){
    let ele =  createAstElement(tagName,attrs)
    if(!root) {
@@ -51,6 +52,7 @@ function end(tagName){
 
 }
 export  function paeseHTML(html) {
+     root = null
     while (html) {
         const textEnd = html.indexOf('<')
         if (textEnd === 0) {  //如果等于0那么是开始标签
@@ -78,7 +80,6 @@ export  function paeseHTML(html) {
         
 
     }
-
     return root
 
 
@@ -94,7 +95,7 @@ export  function paeseHTML(html) {
         }
         advance(start && start[0].length)  //删除已经放到parse中的字符串
         let attrs, end;
-        while ((attrs = html.match(attribute)) && !(end = html.match(startTagClose))) {
+        while ((attrs = html.match(attribute)) && !(end = html.match(startTagClose))) { //如果有属性，并且不是结束标签
             let obj = {
                 name: attrs[1],
                 value : attrs[3]

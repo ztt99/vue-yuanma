@@ -1,4 +1,7 @@
 export function patch(oldVnode, vnode) {
+    if(!oldVnode){
+        return  createElm(vnode)
+    }
 // 第一次不进行对比，初始化的时候将真实dom渲染成虚拟dom
     const isRealElement = oldVnode.nodeType
     if (isRealElement===1) {
@@ -129,11 +132,34 @@ function updateChildren(oldChildren,newChildren,parent){
 
 }
 
-
+function createComponent(vnode){
+    let i = vnode.data  //提取vnode中的data
+    if((i=i.hook)&&(i=i.init)){  
+        i(vnode)
+    }
+    if(vnode.componentInstantce){
+        return true
+    }
+}
+/**
+ * 创建真实节点
+ * @param {*} vnode 虚拟节点
+ */
 function createElm(vnode) {
     let { tag, children, key, data, text } = vnode
 
     if (typeof tag === 'string') {
+
+        if(createComponent(vnode)){
+            /**
+             * 1. 调用mountComponent
+             * 2. 创建watcher
+             * 3.  vm._update(vm._render())
+             * 4. 创建真实节点挂载到vm.$el上
+             */
+            return vnode.componentInstantce.$el
+        }
+
         vnode.el = document.createElement(vnode.tag)
         updateProperties(vnode)
         children?.forEach(child => {  //递归创建儿子节0点，将儿子节点当道父节点

@@ -7,23 +7,24 @@
 </head>
 <body>
     <div id="app">
-        <p>1212</p>
-        <span>{{aaa}}</span>
         <my-button></my-button>
     </div>
     <script src="/dist/umd/vue.js"></script>
     <script>
         Vue.component('my-button',{
-            template:''
+            data(){
+                return {name:2}
+            },
+            created(){
+                console.log(1);
+            },
+            template:'<div>{{name}}</div>'
         })
         let vm = new Vue({
             el:'#app',
             data:{ 
                 a:1,
                 b:2
-            },
-            components:{
-                aa:'aa'
             },
             computed:{
                 aaa(){
@@ -32,7 +33,6 @@
             }
 
         })
-        console.log(vm);
     </script>
 </body>
 </html>

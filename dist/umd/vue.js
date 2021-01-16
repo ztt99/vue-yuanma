@@ -162,6 +162,20 @@
   }
   var API_HOOkS = ['beforeCreate', 'created', 'beforeMount', 'mounted', 'beforeUpdate', 'updated'];
   var starts = {};
+
+  starts.components = function (parent, child) {
+    var res = Object.create(parent); //res.__proto__ = Object.create(parent)
+
+    for (var key in child) {
+      res[key] = child[key];
+    }
+
+    return res;
+  }; // starts.data = function(parent,child){
+  //     return child
+  // }
+
+
   API_HOOkS.forEach(function (hook) {
     starts[hook] = mergeHook;
   });
@@ -208,6 +222,18 @@
     }
 
     return options;
+  }
+  var isReservedTag = makeMap('a,div,ul,li,span,p');
+
+  function makeMap(str) {
+    var mapping = {};
+    var list = str.split(',');
+    list.forEach(function (item) {
+      mapping[item] = true;
+    });
+    return function (tag) {
+      return mapping[tag];
+    };
   }
 
   var oldArrayMethods = Array.prototype;
@@ -299,6 +325,7 @@
       _classCallCheck(this, Observe);
 
       this.dep = new Dep();
+      console.log(data);
       Object.defineProperty(data, '__ob__', {
         enumerable: false,
         configurable: false,
@@ -321,6 +348,7 @@
         for (var i = 0, len = keys.length; i < len; i++) {
           var key = keys[i];
           var value = data[key];
+          console.log(data, key, value);
           defineReactive(data, key, value);
         }
       }
@@ -514,7 +542,7 @@
 
         if (!this.depsid.has(id)) {
           this.depsid.add(id);
-          this.deps.push(this);
+          this.deps.push(dep);
           dep.addSub(this);
         }
       }
@@ -554,6 +582,15 @@
       value: function evaluate() {
         this.value = this.get();
         this.dirty = false;
+      }
+    }, {
+      key: "depend",
+      value: function depend() {
+        var i = this.deps.length;
+
+        while (i--) {
+          this.deps[i].depend(); //继续收集watcher 
+        }
       }
     }]);
 
@@ -641,6 +678,13 @@
           watcher.evaluate();
         }
 
+        if (Dep.target) {
+          /**
+           * watcher则个watcher是计算属性的watcher ，如果存在其他watcher那么久收集起来
+           */
+          watcher.depend();
+        }
+
         return watcher.value;
       }
     };
@@ -714,8 +758,8 @@
   var startTagOpen = new RegExp("^<".concat(qnameCapture));
   var startTagClose = /^\s*(\/?)>/;
   var endTag = new RegExp("^<\\/".concat(qnameCapture, "[^>]*>"));
-  var root = null;
   var currentParen;
+  var root;
   var stack$1 = [];
   var ELEMENT_TYPE = 1;
   var TEXT_TYPE = 3;
@@ -763,6 +807,8 @@
   }
 
   function paeseHTML(html) {
+    root = null;
+
     while (html) {
       var textEnd = html.indexOf('<');
 
@@ -813,6 +859,7 @@
       var attrs, end;
 
       while ((attrs = html.match(attribute)) && !(end = html.match(startTagClose))) {
+        //如果有属性，并且不是结束标签
         var obj = {
           name: attrs[1],
           value: attrs[3]
@@ -912,7 +959,11 @@
   }
 
   function patch(oldVnode, vnode) {
-    // 第一次不进行对比，初始化的时候将真实dom渲染成虚拟dom
+    if (!oldVnode) {
+      return createElm(vnode);
+    } // 第一次不进行对比，初始化的时候将真实dom渲染成虚拟dom
+
+
     var isRealElement = oldVnode.nodeType;
 
     if (isRealElement === 1) {
@@ -923,7 +974,6 @@
       parentElm.insertBefore(el, oldVnode.nextSibling); //把新的节点放到原来节点的后面
 
       oldElm.remove();
-      console.log(vnode.el);
       return el;
     } else {
       // 更新时 用老的虚拟节点与新的进行对比，将不同的地方更新真实的dom
@@ -1056,6 +1106,23 @@
     }
   }
 
+  function createComponent(vnode) {
+    var i = vnode.data; //提取vnode中的data
+
+    if ((i = i.hook) && (i = i.init)) {
+      i(vnode);
+    }
+
+    if (vnode.componentInstantce) {
+      return true;
+    }
+  }
+  /**
+   * 创建真实节点
+   * @param {*} vnode 虚拟节点
+   */
+
+
   function createElm(vnode) {
     var tag = vnode.tag,
         children = vnode.children,
@@ -1064,9 +1131,19 @@
         text = vnode.text;
 
     if (typeof tag === 'string') {
+      if (createComponent(vnode)) {
+        /**
+         * 1. 调用mountComponent
+         * 2. 创建watcher
+         * 3.  vm._update(vm._render())
+         * 4. 创建真实节点挂载到vm.$el上
+         */
+        return vnode.componentInstantce.$el;
+      }
+
       vnode.el = document.createElement(vnode.tag);
       updateProperties(vnode);
-      children.forEach(function (child) {
+      children === null || children === void 0 ? void 0 : children.forEach(function (child) {
         //递归创建儿子节0点，将儿子节点当道父节点
         return vnode.el.appendChild(createElm(child));
       });
@@ -1194,28 +1271,57 @@
    * @param {*} data 属性
    * @param  {...any} children 
    */
-  function createElement(tag) {
-    var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  function createElement(vm, tag) {
+    var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
     var key = data.key;
     key ? delete data.key : '';
 
-    for (var _len = arguments.length, children = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-      children[_key - 2] = arguments[_key];
+    for (var _len = arguments.length, children = new Array(_len > 3 ? _len - 3 : 0), _key = 3; _key < _len; _key++) {
+      children[_key - 3] = arguments[_key];
     }
 
-    return vnode(tag, data, key, children, undefined);
+    if (isReservedTag(tag)) {
+      return vnode(tag, data, key, children, undefined);
+    } else {
+      var Cons = vm.$options.components[tag]; //全局以及局部的components都在这里，全局的是构造函数，局部的是对象
+
+      if (_typeof(Cons) === 'object') {
+        Cons = vm.options._base.extent(Cons);
+      }
+
+      data.hook = {
+        init: function init(vnode) {
+          var child = vnode.componentInstantce = new Cons({});
+          child.$mount();
+          /**
+           *  new Cons({})
+           * 1. 执行init
+           * 2. 调用callhock
+           * 3. 初始化state
+           * 4. Cons是Sub的实例，继承Vue
+           */
+        }
+      };
+      return vnode("vue-compoment-".concat(Cons.cid, "-").concat(tag), data, key, undefined, undefined, {
+        Cons: Cons,
+        children: children //插槽
+
+      });
+    }
   }
   function createTextNode(text) {
     return vnode(undefined, undefined, undefined, undefined, text);
   }
 
-  function vnode(tag, data, key, children, text) {
+  function vnode(tag, data, key, children, text, componentOptions) {
     return {
       tag: tag,
       data: data,
       key: key,
       children: children,
-      text: text
+      text: text,
+      componentOptions: componentOptions
     };
   }
 
@@ -1224,7 +1330,7 @@
     // _v 创建文本的虚拟节点
     // _s JSON.stringify
     Vue.prototype._c = function () {
-      return createElement.apply(void 0, arguments);
+      return createElement.apply(void 0, [this].concat(Array.prototype.slice.call(arguments)));
     };
 
     Vue.prototype._v = function (text) {
@@ -1242,6 +1348,36 @@
     };
   }
 
+  function initExtent(Vue) {
+    var cid = 0;
+    var cidarr = [];
+
+    Vue.extent = function (extentOptions) {
+      var Sub;
+      if (cidarr.includes(cid)) return Sub;
+      var Super = this;
+
+      Sub = function VueCompoment(options) {
+        this._init(options);
+      };
+
+      Sub.cid = cid++;
+      cidarr.push(Sub.cid);
+      Sub.prototype = Object.create(Super.prototype);
+      Sub.prototype.constructor = Sub; // vm.$options = mergeOptions(vm.constructor.options, options) 
+
+      /** 
+       * init中的
+       * vm是当前sub的实例
+       * vm.constructor.options 是Sub.options Sub.options 是Vue.options 和 extent传进来的
+       * 相当于将全局的options 与实例的options储存在一起
+       */
+
+      Sub.options = mergeOptions(Super.options, extentOptions);
+      return Sub;
+    };
+  }
+
   function initGlobalAPI(Vue) {
     // 整合了所有的全局api  
     Vue.options = {};
@@ -1250,12 +1386,17 @@
       this.options = mergeOptions(this.options, mixin);
     };
 
-    Vue.mixin({
-      beforeCreate: function beforeCreate() {}
-    });
-    Vue.mixin({
-      beforeCreate: function beforeCreate() {}
-    });
+    initExtent(Vue);
+    Vue.options._base = Vue;
+    Vue.options.components = {};
+
+    Vue.component = function (id, definition) {
+      definition.name = definition.name || id; // new definition().$mount()
+
+      definition = this.options._base.extent(definition); // 将全局的components挂载到Vue的options上 ，现在全局的components是一个构造函数
+
+      Vue.options.components[id] = definition;
+    };
   }
 
   function Vue(options) {

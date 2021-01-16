@@ -13,11 +13,22 @@ export function createElement(vm,tag, data = {}, ...children) {
         return vnode(tag, data, key, children,undefined)
     }else{
         let Cons = vm.$options.components[tag]  //全局以及局部的components都在这里，全局的是构造函数，局部的是对象
+        
         if(typeof Cons === 'object'){
             Cons = vm.options._base.extent(Cons)
         }
         data.hook = {
-            init(){}
+            init(vnode){
+                let child = vnode.componentInstantce = new Cons({})
+                child.$mount()
+                /**
+                 *  new Cons({})
+                 * 1. 执行init
+                 * 2. 调用callhock
+                 * 3. 初始化state
+                 * 4. Cons是Sub的实例，继承Vue
+                 */
+            }
         }
         return vnode(`vue-compoment-${Cons.cid}-${tag}`,
          data,
