@@ -1,12 +1,18 @@
 import { mergeOptions } from "../utils/index.js"
 
 export default function initExtent(Vue) {
+    let cid = 0
+    let cidarr = []
     Vue.extent = function (extentOptions) {
+        let Sub
+        if(cidarr.includes(cid)) return Sub
         const Super = this
-        const Sub = function VueCompoment(options) {
+        Sub = function VueCompoment(options) {
             this._init(options)
 
         }
+        Sub.cid = cid++
+        cidarr.push(Sub.cid)
         Sub.prototype = Object.create(Super.prototype)
         Sub.prototype.constructor = Sub
         // vm.$options = mergeOptions(vm.constructor.options, options) 

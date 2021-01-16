@@ -7,7 +7,6 @@ export function patch(oldVnode, vnode) {
         let el = createElm(vnode)
         parentElm.insertBefore(el, oldVnode.nextSibling) //把新的节点放到原来节点的后面
         oldElm.remove()
-        console.log(vnode.el);
         return el
 
     }else{
@@ -137,7 +136,7 @@ function createElm(vnode) {
     if (typeof tag === 'string') {
         vnode.el = document.createElement(vnode.tag)
         updateProperties(vnode)
-        children.forEach(child => {  //递归创建儿子节0点，将儿子节点当道父节点
+        children?.forEach(child => {  //递归创建儿子节0点，将儿子节点当道父节点
             return vnode.el.appendChild(createElm(child))
         })
     } else {

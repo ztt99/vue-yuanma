@@ -16,6 +16,7 @@ export function initGlobalAPI (Vue){
         definition.name = definition.name || id
         // new definition().$mount()
         definition = this.options._base.extent(definition)
+        // 将全局的components挂载到Vue的options上 ，现在全局的components是一个构造函数
         Vue.options.components[id] = definition
     }
 

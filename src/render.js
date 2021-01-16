@@ -8,7 +8,7 @@ export function renderMixin(Vue) {
     // _s JSON.stringify
 
     Vue.prototype._c = function (){
-        return createElement(...arguments)
+        return createElement(this,...arguments)
     }
     Vue.prototype._v = function (text){
         return createTextNode(text)

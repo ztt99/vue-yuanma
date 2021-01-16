@@ -23,7 +23,6 @@ const API_HOOkS = [
 let starts = {}
 
 starts.components = function(parent,child){
-    console.log(parent);
     const res = Object.create(parent)  //res.__proto__ = Object.create(parent)
     for(let key in child){
         res[key] = child[key]
@@ -51,11 +50,9 @@ function mergeHook(parent,child){
 export  function mergeOptions(parent,child){
     let options = {}
     for(let key in parent){
-        console.log(key);
         mergefile(key)
     } 
     for(let key in child){
-        console.log(key);
         if(!parent.hasOwnProperty(key)){
             mergefile(key)
         }
@@ -76,4 +73,21 @@ export  function mergeOptions(parent,child){
     }
 
     return options
+}
+
+export const isReservedTag = makeMap(
+    'a,div,ul,li,span,p'
+)
+
+
+function makeMap(str){
+    let mapping = {}
+    let list = str.split(',')
+    list.forEach(item=>{
+        mapping[item] = true
+    })
+
+    return function(tag){
+        return mapping[tag]
+    }
 }
