@@ -1,4 +1,4 @@
-import { mergeOptions } from "../utils"
+import { mergeOptions } from "../utils/index.js"
 
 export default function initExtent(Vue) {
     Vue.extent = function (extentOptions) {

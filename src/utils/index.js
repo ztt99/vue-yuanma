@@ -27,7 +27,7 @@ starts.components = function(parent,child){
     for(let key in child){
         res[key] = child[key]
     }
-    return key
+    return res
 }
 
 starts.data = function(parent,child){
